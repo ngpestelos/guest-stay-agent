@@ -1,0 +1,64 @@
+{
+  "id": "stay-seed",
+  "policy": "demo-guest-v1",
+  "label": "[adapter] fictional STR guest journey — not a shipped product",
+  "stay": {
+    "booking_id": "SH-18422",
+    "version": 1,
+    "listing": "Bamboo Loft · Cebu IT Park",
+    "channel": "direct",
+    "check_in": "2026-09-12",
+    "check_out": "2026-09-15",
+    "guests": 2,
+    "status": "confirmed",
+    "stage": "pre_arrival"
+  },
+  "guest": {
+    "name": "Alex Rivera",
+    "locale": "en",
+    "phone_last4": "4821",
+    "flags": ["not_minor", "not_medical", "verified_booking"]
+  },
+  "operator": {
+    "name": "Host queue",
+    "escalation_sla_minutes": 15
+  },
+  "listing_rules": {
+    "check_in_from": "15:00",
+    "check_out_by": "11:00",
+    "wifi_ssid": "BambooLoft-Guest",
+    "wifi_password": "welcome-cebu-09",
+    "late_checkout_until": "13:00",
+    "late_checkout_fee_php": 500,
+    "late_checkout_auto_approve": true,
+    "max_comp_php_without_host": 0,
+    "smoking": false,
+    "pets": false
+  },
+  "stages": [
+    "inquiry",
+    "booked",
+    "pre_arrival",
+    "in_stay",
+    "checkout",
+    "closed"
+  ],
+  "memory_persist": {
+    "booking_id": "SH-18422",
+    "stay_version": 1,
+    "commitments": [
+      "Standard check-in from 15:00 on 2026-09-12",
+      "Door code sent day-of after ID match"
+    ],
+    "offers_made": [],
+    "offers_refused": [],
+    "escalations": [],
+    "channel_thread_id": "wa-7f3a91",
+    "language": "en"
+  },
+  "memory_discard": [
+    "other_guests_threads",
+    "model_chain_of_thought",
+    "failed_tool_dumps"
+  ]
+}

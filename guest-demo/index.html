@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guest stay agent</title>
+  <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+  <p id="boot">Loading…</p>
+  <div id="app" hidden>
+    <header class="top">
+      <div>
+        <p class="eyebrow">Demo · not a product</p>
+        <h1>Guest stay agent</h1>
+        <p class="lede">The agent answers from the stay. It cannot refund money or fake a confirmation. A host can override the money gate. Policy still decides for the agent.</p>
+      </div>
+      <div class="top-actions">
+        <button type="button" id="btn-walk" class="primary">Play</button>
+        <button type="button" id="btn-reset">Reset</button>
+        <button type="button" id="btn-internals">How it works</button>
+      </div>
+    </header>
+
+    <p id="caption" class="caption">A normal question, a refund the agent cannot pay, a host who can, then a slot that disappears.</p>
+    <p id="stay-line" class="stay-line"></p>
+
+    <div class="story">
+      <section class="chat-panel">
+        <h2>What the guest sees</h2>
+        <div id="thread" class="thread"></div>
+      </section>
+      <section class="decision-panel">
+        <h2>What happened</h2>
+        <div class="card">
+          <h3>Agent wanted</h3>
+          <p id="wanted-text">Waiting.</p>
+        </div>
+        <div class="card">
+          <h3>Policy decided</h3>
+          <p><span id="happened-badge" class="call call-idle">idle</span></p>
+          <p id="happened-text">Press Play.</p>
+        </div>
+        <div class="card">
+          <h3>Guest was told</h3>
+          <p id="guest-hears" class="hears">Nothing yet.</p>
+        </div>
+      </section>
+    </div>
+
+    <div id="internals" class="internals" hidden>
+      <p><span id="model-status" class="status fallback">checking proposer…</span></p>
+      <section class="stages" aria-label="Journey stages">
+        <h2>Stay stages</h2>
+        <ol id="stages"></ol>
+      </section>
+      <div class="grid">
+        <section>
+          <h2>Stay + memory</h2>
+          <dl id="stay-dl"></dl>
+          <h3>Persist</h3>
+          <pre id="memory-persist"></pre>
+          <h3>Discard</h3>
+          <ul id="memory-discard"></ul>
+        </section>
+        <section>
+          <h2>Options</h2>
+          <p id="eval-title" class="muted"></p>
+          <span id="thread-id" class="muted" hidden></span>
+          <ul id="options"></ul>
+        </section>
+        <section>
+          <h2>Propose → policy</h2>
+          <nav class="evals">
+            <button type="button" data-eval="guest-eval-1-act">1 Answer</button>
+            <button type="button" data-eval="guest-eval-2-escalate">2 Refund</button>
+            <button type="button" data-eval="guest-eval-3-stop">3 Slot gone</button>
+          </nav>
+          <p>Option <strong id="proposal-id">—</strong> <span id="proposal-src" class="muted"></span></p>
+          <pre id="proposal-text"></pre>
+          <p class="row">
+            <button type="button" id="btn-model" class="primary">Model propose</button>
+            <button type="button" id="btn-greedy">Stand-in propose</button>
+            <button type="button" id="btn-veto">Apply policy</button>
+            <button type="button" id="btn-override">Host override</button>
+          </p>
+          <h3>Tools</h3>
+          <pre id="trace"></pre>
+          <label for="paste">Paste model output</label>
+          <textarea id="paste" rows="3" placeholder='{"option_id":"A","call":"act"}'></textarea>
+          <p><button type="button" id="btn-paste">Parse paste</button></p>
+          <p>
+            <span id="verdict-call" class="call call-idle">idle</span>
+            <span id="verdict-ticket" class="badge">—</span>
+          </p>
+          <h3>Guest-facing reply</h3>
+          <pre id="guest-reply" class="reply"></pre>
+          <h3>Workflows</h3>
+          <ul id="workflows"></ul>
+          <h3>Hand-off packet</h3>
+          <pre id="packet"></pre>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script src="policy.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
