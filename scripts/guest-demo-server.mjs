@@ -11,13 +11,34 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  apiKey,
-  modelName,
-  proposeWithModel
-} from "./lib/guest-propose.mjs";
+import { resolveConfig, proposeWithModel } from "./lib/guest-propose.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+function loadDotenv() {
+  const file = path.join(root, ".env");
+  if (!fs.existsSync(file)) return;
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq < 1) continue;
+    const name = t.slice(0, eq).trim();
+    let val = t.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (process.env[name] == null || process.env[name] === "") {
+      process.env[name] = val;
+    }
+  }
+}
+
+loadDotenv();
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.GUEST_DEMO_PORT || 8765);
 const MAX_BODY = 1_000_000;
@@ -79,12 +100,12 @@ async function handlePropose(req, res) {
     sendJson(res, 405, { ok: false, error: "method" });
     return;
   }
-  if (!apiKey()) {
+  if (!resolveConfig().keyed) {
     sendJson(res, 503, {
       ok: false,
       fallback: true,
       error: "no_api_key",
-      hint: "export XAI_API_KEY then restart. Greedy stays the offline proposer."
+      hint: "Set GUEST_DEMO_API_KEY + GUEST_DEMO_API_BASE + GUEST_DEMO_MODEL (or NOUS_API_KEY / XAI_API_KEY). Stand-in proposer if unset."
     });
     return;
   }
@@ -120,10 +141,13 @@ async function handlePropose(req, res) {
 const server = http.createServer(function (req, res) {
   const url = req.url || "/";
   if (url.startsWith("/api/status")) {
+    const cfg = resolveConfig();
     sendJson(res, 200, {
       ok: true,
-      keyed: Boolean(apiKey()),
-      model: modelName(),
+      keyed: cfg.keyed,
+      model: cfg.model,
+      base: cfg.base,
+      source: cfg.source,
       bind: HOST + ":" + PORT
     });
     return;
@@ -165,6 +189,9 @@ const server = http.createServer(function (req, res) {
 });
 
 server.listen(PORT, HOST, function () {
-  const keyed = apiKey() ? "keyed " + modelName() : "no key · greedy fallback";
+  const cfg = resolveConfig();
+  const keyed = cfg.keyed
+    ? "keyed " + (cfg.preset || cfg.source) + " " + cfg.model
+    : "no key · stand-in fallback";
   console.log("guest-demo http://" + HOST + ":" + PORT + "/guest-demo/  (" + keyed + ")");
 });

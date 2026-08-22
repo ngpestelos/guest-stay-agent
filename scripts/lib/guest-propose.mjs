@@ -60,16 +60,89 @@ export const SYSTEM_PROMPT = [
   "Do not claim you already refunded or confirmed. That is the gate's job."
 ].join(" ");
 
+const PRESETS = {
+  nous: {
+    base: "https://inference-api.nousresearch.com/v1",
+    model: "deepseek/deepseek-v4-pro"
+  },
+  xai: {
+    base: "https://api.x.ai/v1",
+    model: "grok-4.6"
+  },
+  openai: {
+    base: "https://api.openai.com/v1",
+    model: ""
+  }
+};
+
+function trim(v) {
+  return String(v || "").trim();
+}
+
+function stripSlash(v) {
+  return trim(v).replace(/\/$/, "");
+}
+
+/** OpenAI-compatible resolver. First matching key wins. Base/model inferred from known keys unless overridden. */
+export function resolveConfig(env) {
+  env = env || process.env;
+  const guestKey = trim(env.GUEST_DEMO_API_KEY);
+  const openaiKey = trim(env.OPENAI_API_KEY);
+  const nousKey = trim(env.NOUS_API_KEY);
+  const xaiKey = trim(env.XAI_API_KEY) || trim(env.GROK_API_KEY);
+  const explicitBase = stripSlash(env.GUEST_DEMO_API_BASE || env.OPENAI_BASE_URL);
+  const explicitModel = trim(env.GUEST_DEMO_MODEL || env.OPENAI_MODEL);
+
+  let key = "";
+  let source = "";
+  let preset = "";
+  if (guestKey) {
+    key = guestKey;
+    source = "GUEST_DEMO_API_KEY";
+  } else if (openaiKey) {
+    key = openaiKey;
+    source = "OPENAI_API_KEY";
+    preset = "openai";
+  } else if (nousKey) {
+    key = nousKey;
+    source = "NOUS_API_KEY";
+    preset = "nous";
+  } else if (xaiKey) {
+    key = xaiKey;
+    source = trim(env.XAI_API_KEY) ? "XAI_API_KEY" : "GROK_API_KEY";
+    preset = "xai";
+  }
+
+  let base = explicitBase;
+  if (!base && preset && PRESETS[preset]) base = PRESETS[preset].base;
+
+  let model = explicitModel;
+  if (!model && preset && PRESETS[preset]) model = PRESETS[preset].model;
+
+  let inferred = preset;
+  if (!inferred && /nousresearch\.com/i.test(base)) inferred = "nous";
+  else if (!inferred && /api\.x\.ai/i.test(base)) inferred = "xai";
+
+  return {
+    keyed: Boolean(key),
+    key: key,
+    base: base,
+    model: model,
+    source: key ? source : "",
+    preset: inferred
+  };
+}
+
 export function apiKey() {
-  return process.env.XAI_API_KEY || process.env.GROK_API_KEY || "";
+  return resolveConfig().key;
 }
 
 export function apiBase() {
-  return (process.env.XAI_API_BASE || "https://api.x.ai/v1").replace(/\/$/, "");
+  return resolveConfig().base;
 }
 
 export function modelName() {
-  return process.env.GUEST_DEMO_MODEL || "grok-4.6";
+  return resolveConfig().model;
 }
 
 export function runTool(name, args, ctx) {
@@ -179,21 +252,32 @@ function textFromChat(data) {
 }
 
 export async function chatCompletions(messages, tools, fetchImpl) {
-  const key = apiKey();
-  if (!key) {
+  const cfg = resolveConfig();
+  if (!cfg.key) {
     const err = new Error("no_api_key");
     err.code = "no_api_key";
     throw err;
   }
+  if (!cfg.base) {
+    const err = new Error("no_api_base");
+    err.code = "no_api_base";
+    throw err;
+  }
+  if (!cfg.model) {
+    const err = new Error("no_model");
+    err.code = "no_model";
+    throw err;
+  }
   const fetchFn = fetchImpl || fetch;
-  const res = await fetchFn(apiBase() + "/chat/completions", {
+  const res = await fetchFn(cfg.base + "/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: "Bearer " + key,
-      "Content-Type": "application/json"
+      Authorization: "Bearer " + cfg.key,
+      "Content-Type": "application/json",
+      "User-Agent": "guest-stay-agent"
     },
     body: JSON.stringify({
-      model: modelName(),
+      model: cfg.model,
       messages: messages,
       tools: tools,
       temperature: 0.7
@@ -201,8 +285,8 @@ export async function chatCompletions(messages, tools, fetchImpl) {
   });
   const body = await res.text();
   if (!res.ok) {
-    const err = new Error("xai_" + res.status);
-    err.code = "xai_http";
+    const err = new Error("provider_" + res.status);
+    err.code = "provider_http";
     err.status = res.status;
     err.body = body.slice(0, 400);
     throw err;
@@ -255,6 +339,7 @@ export async function proposeWithModel(payload, opts) {
         ok: true,
         fallback: false,
         model: modelName(),
+        base: apiBase(),
         proposal: parsed,
         trace: trace,
         raw: text
@@ -270,6 +355,7 @@ export async function proposeWithModel(payload, opts) {
     fallback: true,
     error: "no_json",
     model: modelName(),
+    base: apiBase(),
     trace: trace
   };
 }

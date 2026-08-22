@@ -6,14 +6,29 @@ The model proposes. A separate policy decides. The agent can answer from the sta
 
 ## Run
 
+Any OpenAI-compatible chat API. A local stand-in proposes if no key is set.
+
 ```bash
-export XAI_API_KEY=...   # optional; a local stand-in proposes if unset
+# Generic (Nous example)
+export GUEST_DEMO_API_KEY=...
+export GUEST_DEMO_API_BASE=https://inference-api.nousresearch.com/v1
+export GUEST_DEMO_MODEL=deepseek/deepseek-v4-pro
+
+# Or a known key name (base and model inferred)
+export NOUS_API_KEY=...
+# export XAI_API_KEY=...
+# export OPENAI_API_KEY=...   # also set OPENAI_BASE_URL if not api.openai.com
+
 node scripts/guest-demo-server.mjs
 ```
 
+A repo-root `.env` is loaded if present (not committed).
+
 Open http://127.0.0.1:8765/guest-demo/ and press **Play**.
 
-The server binds `127.0.0.1` only. Do not open `file://`. Keep the API key in the environment, not in the page.
+The server binds `127.0.0.1` only. Do not open `file://`. Keep the key in the environment, not in the page.
+
+`OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` are aliases for the `GUEST_DEMO_*` trio.
 
 ## Tests
 

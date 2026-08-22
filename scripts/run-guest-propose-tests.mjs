@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 import {
   parseProposalJson,
   runTool,
-  proposeWithModel
+  proposeWithModel,
+  resolveConfig
 } from "./lib/guest-propose.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,6 +38,35 @@ assert(
   "parse fenced JSON",
   parseProposalJson('```json\n{"option_id":"B","call":"escalate","rationale":"hold"}\n```')
     .option_id === "B"
+);
+
+const empty = resolveConfig({});
+assert("no key is unkeyed", empty.keyed === false && empty.key === "");
+
+const nous = resolveConfig({ NOUS_API_KEY: "nous-test" });
+assert("NOUS_API_KEY infers Nous base", nous.base.indexOf("nousresearch.com") >= 0);
+assert("NOUS_API_KEY infers DeepSeek id", nous.model === "deepseek/deepseek-v4-pro");
+
+const generic = resolveConfig({
+  GUEST_DEMO_API_KEY: "k",
+  GUEST_DEMO_API_BASE: "https://example.test/v1/",
+  GUEST_DEMO_MODEL: "acme-1"
+});
+assert("generic trio wins", generic.key === "k" && generic.base === "https://example.test/v1" && generic.model === "acme-1");
+
+const overrideNous = resolveConfig({
+  NOUS_API_KEY: "nous-test",
+  GUEST_DEMO_MODEL: "other/model"
+});
+assert("GUEST_DEMO_MODEL overrides Nous default", overrideNous.model === "other/model");
+
+const openaiCompat = resolveConfig({
+  OPENAI_API_KEY: "sk",
+  OPENAI_BASE_URL: "https://inference-api.nousresearch.com/v1"
+});
+assert(
+  "OPENAI_* aliases work against Nous host",
+  openaiCompat.keyed && openaiCompat.base.indexOf("nousresearch.com") >= 0
 );
 
 const rules = runTool("get_rules", {}, { stay: stay, fixture: e2 });
