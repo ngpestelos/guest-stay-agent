@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guest stay agent</title>
-  <link rel="stylesheet" href="demo.css?v=scenarios">
+  <link rel="stylesheet" href="demo.css?v=opt1">
 </head>
 <body>
   <p id="boot">Loading…</p>
@@ -66,7 +66,6 @@
         <section>
           <h2>Options</h2>
           <p id="eval-title" class="muted"></p>
-          <span id="thread-id" class="muted" hidden></span>
           <ul id="options"></ul>
         </section>
         <section>
@@ -82,15 +81,10 @@
           </p>
           <h3>Tools</h3>
           <pre id="trace"></pre>
-          <label for="paste">Paste model output</label>
-          <textarea id="paste" rows="3" placeholder='{"option_id":"A","call":"act"}'></textarea>
-          <p><button type="button" id="btn-paste">Parse paste</button></p>
           <p>
             <span id="verdict-call" class="call call-idle">idle</span>
             <span id="verdict-ticket" class="badge">—</span>
           </p>
-          <h3>Guest-facing reply</h3>
-          <pre id="guest-reply" class="reply"></pre>
           <h3>Workflows</h3>
           <ul id="workflows"></ul>
           <h3>Hand-off packet</h3>
@@ -100,6 +94,6 @@
     </div>
   </div>
   <script src="policy.js"></script>
-  <script src="app.js?v=load-story"></script>
+  <script src="app.js?v=opt1"></script>
 </body>
 </html>

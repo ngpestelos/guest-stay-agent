@@ -3,7 +3,6 @@
   "eval": 1,
   "title": "In-policy guest question — answer without paging the host",
   "policy": "demo-guest-v1",
-  "neil_maps": ["context", "memory", "act when safe"],
   "stage": "pre_arrival",
   "expected": {
     "call": "act",

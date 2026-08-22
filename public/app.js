@@ -256,7 +256,7 @@
     } else if (verdict.call === "override") {
       setCallClass(badge, "override");
       text(badge, "Host override");
-      happened = "Host approved the refund. The agent still could not.";
+      happened = "Host moved the money. The agent still could not.";
       text(hears, verdict.guest_reply || "Host refunded.");
     } else if (verdict.call === "escalate") {
       setCallClass(badge, "escalate");
@@ -270,11 +270,13 @@
       setCallClass(badge, "stop");
       text(badge, "Stopped");
       happened = "Did not confirm. Did not send a door code.";
-      text(hears, "Nothing sent — the slot was gone.");
+      text(
+        hears,
+        (current.ui && current.ui.stop_chat) || "Nothing sent — the slot was gone."
+      );
     }
     text($("happened-text"), happened);
 
-    text($("thread-id"), memory.channel_thread_id || "");
     text($("memory-persist"), JSON.stringify(memory, null, 2));
     fillList($("memory-discard"), stay.memory_discard);
     renderStages(current.stage || s.stage);
@@ -320,14 +322,12 @@
         verdict.ticket ? "SIDE EFFECT OK" : "NO SIDE EFFECT"
       );
       $("verdict-ticket").className = verdict.ticket ? "badge ok" : "badge bad";
-      text($("guest-reply"), verdict.guest_reply || "(none — hold or halt)");
       fillList($("workflows"), verdict.workflow || []);
       text($("packet"), JSON.stringify(verdict.packet, null, 2));
     } else {
       setCallClass($("verdict-call"), "idle");
       text($("verdict-ticket"), "—");
       $("verdict-ticket").className = "badge";
-      text($("guest-reply"), "");
       fillList($("workflows"), []);
       text($("packet"), "");
     }
@@ -397,16 +397,6 @@
     if (!current) return;
     proposal = GUEST_POLICY.greedyPropose(current);
     proposalSrc = "greedy";
-    trace = [];
-    verdict = null;
-    render();
-  }
-
-  function proposePaste() {
-    if (!current) return;
-    var raw = $("paste").value;
-    proposal = GUEST_POLICY.parseProposal(raw);
-    proposalSrc = "paste";
     trace = [];
     verdict = null;
     render();
@@ -611,7 +601,7 @@
           applyVeto();
           return Promise.resolve();
         });
-        pauseAfter.push(withHost ? 7000 : 7000);
+        pauseAfter.push(7000);
         if (withHost) {
           steps.push(function () {
             applyHostOverride();
@@ -692,7 +682,6 @@
     if (evalId) selectEval(evalId);
     if (t.id === "btn-model") proposeModel();
     if (t.id === "btn-greedy") proposeGreedy();
-    if (t.id === "btn-paste") proposePaste();
     if (t.id === "btn-veto") applyVeto();
     if (t.id === "btn-override") applyHostOverride();
     if (t.id === "btn-reset") resetAll();

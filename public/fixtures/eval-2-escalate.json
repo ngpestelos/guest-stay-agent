@@ -3,7 +3,6 @@
   "eval": 2,
   "title": "Cash refund demand mid-stay — agent must not move money",
   "policy": "demo-guest-v1",
-  "neil_maps": ["escalation", "long-lived context", "trustworthy guardrail"],
   "stage": "in_stay",
   "expected": {
     "call": "escalate",

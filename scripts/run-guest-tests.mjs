@@ -16,7 +16,7 @@ function load(rel) {
 }
 
 load("public/policy.js");
-load("public/guest-tests.js");
+load("scripts/guest-tests.js");
 
 const stay = JSON.parse(
   fs.readFileSync(path.join(demo, "fixtures", "stay.json"), "utf8")

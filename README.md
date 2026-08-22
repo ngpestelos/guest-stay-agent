@@ -24,7 +24,7 @@ node scripts/guest-demo-server.mjs
 
 A repo-root `.env` is loaded if present (not committed).
 
-Open http://127.0.0.1:8765/ and press **Play**. Each Play cycles a different stay story (FAQ → money gate + host override → withdrawn slot).
+Open http://127.0.0.1:8765/ and press **Play**. Reload to get a different stay story (FAQ → money gate + host override → withdrawn slot).
 
 The server binds `127.0.0.1` only. Do not open `file://`. Keep the key in the environment, not in the page.
 
@@ -32,6 +32,7 @@ The server binds `127.0.0.1` only. Do not open `file://`. Keep the key in the en
 
 ## Live
 
+https://guest-stay-agent.nestor-c85.workers.dev/  
 https://guest-agent-demo.ngpcloud.org/
 
 Cloudflare Worker + static assets. Secrets stay in Wrangler, not in the page.
