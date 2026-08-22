@@ -84,8 +84,17 @@ function stripSlash(v) {
 }
 
 /** OpenAI-compatible resolver. First matching key wins. Base/model inferred from known keys unless overridden. */
+function processEnv() {
+  try {
+    if (typeof process !== "undefined" && process.env) return process.env;
+  } catch {
+    /* Workers have no process */
+  }
+  return {};
+}
+
 export function resolveConfig(env) {
-  env = env || process.env;
+  env = env || processEnv();
   const guestKey = trim(env.GUEST_DEMO_API_KEY);
   const openaiKey = trim(env.OPENAI_API_KEY);
   const nousKey = trim(env.NOUS_API_KEY);
@@ -251,8 +260,8 @@ function textFromChat(data) {
   return (msg && msg.content) || "";
 }
 
-export async function chatCompletions(messages, tools, fetchImpl) {
-  const cfg = resolveConfig();
+export async function chatCompletions(messages, tools, fetchImpl, env) {
+  const cfg = resolveConfig(env);
   if (!cfg.key) {
     const err = new Error("no_api_key");
     err.code = "no_api_key";
@@ -296,8 +305,14 @@ export async function chatCompletions(messages, tools, fetchImpl) {
 
 export async function proposeWithModel(payload, opts) {
   opts = opts || {};
+  const env = opts.env;
+  const cfg = resolveConfig(env);
   const fetchImpl = opts.fetchImpl;
-  const chatFn = opts.chatFn || chatCompletions;
+  const chatFn =
+    opts.chatFn ||
+    function (messages, tools, fetchImpl) {
+      return chatCompletions(messages, tools, fetchImpl, env);
+    };
   const trace = [];
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
@@ -338,8 +353,8 @@ export async function proposeWithModel(payload, opts) {
       return {
         ok: true,
         fallback: false,
-        model: modelName(),
-        base: apiBase(),
+        model: cfg.model,
+        base: cfg.base,
         proposal: parsed,
         trace: trace,
         raw: text
@@ -354,8 +369,8 @@ export async function proposeWithModel(payload, opts) {
     ok: false,
     fallback: true,
     error: "no_json",
-    model: modelName(),
-    base: apiBase(),
+    model: cfg.model,
+    base: cfg.base,
     trace: trace
   };
 }

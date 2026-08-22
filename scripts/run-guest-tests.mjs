@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const demo = path.join(root, "guest-demo");
+const demo = path.join(root, "public");
 const context = { console };
 context.globalThis = context;
 vm.createContext(context);
@@ -15,8 +15,8 @@ function load(rel) {
   });
 }
 
-load("guest-demo/policy.js");
-load("guest-demo/guest-tests.js");
+load("public/policy.js");
+load("public/guest-tests.js");
 
 const stay = JSON.parse(
   fs.readFileSync(path.join(demo, "fixtures", "stay.json"), "utf8")

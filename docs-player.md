@@ -1,6 +1,6 @@
 # Guest stay player
 
-Static page served by `scripts/guest-demo-server.mjs` from the repo root.
+Static page in `public/`. Local: `scripts/guest-demo-server.mjs`. Live: Cloudflare Worker at guest-agent-demo.ngpcloud.org.
 
 **Play** runs:
 

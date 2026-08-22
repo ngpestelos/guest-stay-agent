@@ -24,11 +24,22 @@ node scripts/guest-demo-server.mjs
 
 A repo-root `.env` is loaded if present (not committed).
 
-Open http://127.0.0.1:8765/guest-demo/ and press **Play**.
+Open http://127.0.0.1:8765/ and press **Play**.
 
 The server binds `127.0.0.1` only. Do not open `file://`. Keep the key in the environment, not in the page.
 
 `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` are aliases for the `GUEST_DEMO_*` trio.
+
+## Live
+
+https://guest-agent-demo.ngpcloud.org/
+
+Cloudflare Worker + static assets. Secrets stay in Wrangler, not in the page.
+
+```bash
+npx wrangler secret put NOUS_API_KEY
+./scripts/deploy.sh
+```
 
 ## Tests
 

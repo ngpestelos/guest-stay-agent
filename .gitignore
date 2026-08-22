@@ -1,4 +1,6 @@
 .env
+.dev.vars
+.wrangler/
 *.sqlite
 .DS_Store
 node_modules/

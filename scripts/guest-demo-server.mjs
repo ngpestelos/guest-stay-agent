@@ -4,7 +4,7 @@
  * Bind 127.0.0.1 only. Key stays in env — never in the page.
  *
  *   node scripts/guest-demo-server.mjs
- *   open http://127.0.0.1:8765/guest-demo/
+ *   open http://127.0.0.1:8765/
  */
 
 import http from "node:http";
@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import { resolveConfig, proposeWithModel } from "./lib/guest-propose.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const publicDir = path.join(root, "public");
 
 function loadDotenv() {
   const file = path.join(root, ".env");
@@ -68,10 +69,11 @@ function sendJson(res, status, obj) {
 }
 
 function safeFile(urlPath) {
-  const rel = decodeURIComponent(urlPath.split("?")[0]);
-  const cleaned = rel === "/" ? "/README.md" : rel;
-  const abs = path.normalize(path.join(root, cleaned));
-  if (!abs.startsWith(root)) return null;
+  let rel = decodeURIComponent(urlPath.split("?")[0]);
+  if (rel === "/guest-demo" || rel === "/guest-demo/") rel = "/";
+  const cleaned = rel === "/" ? "/index.html" : rel;
+  const abs = path.normalize(path.join(publicDir, cleaned));
+  if (!abs.startsWith(publicDir)) return null;
   return abs;
 }
 
@@ -193,5 +195,5 @@ server.listen(PORT, HOST, function () {
   const keyed = cfg.keyed
     ? "keyed " + (cfg.preset || cfg.source) + " " + cfg.model
     : "no key · stand-in fallback";
-  console.log("guest-demo http://" + HOST + ":" + PORT + "/guest-demo/  (" + keyed + ")");
+  console.log("guest-demo http://" + HOST + ":" + PORT + "/  (" + keyed + ")");
 });

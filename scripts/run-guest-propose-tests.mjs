@@ -9,7 +9,7 @@ import {
 } from "./lib/guest-propose.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const demo = path.join(root, "guest-demo");
+const demo = path.join(root, "public");
 const stay = JSON.parse(
   fs.readFileSync(path.join(demo, "fixtures", "stay.json"), "utf8")
 );

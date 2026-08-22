@@ -590,7 +590,7 @@
     .catch(function (err) {
       text(
         $("boot"),
-        "Serve the project folder over HTTP, open /guest-demo/. " + err.message
+        "Serve over HTTP (local server or the live Worker). " + err.message
       );
     });
 })();
