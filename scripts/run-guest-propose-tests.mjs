@@ -45,7 +45,7 @@ assert("no key is unkeyed", empty.keyed === false && empty.key === "");
 
 const nous = resolveConfig({ NOUS_API_KEY: "nous-test" });
 assert("NOUS_API_KEY infers Nous base", nous.base.indexOf("nousresearch.com") >= 0);
-assert("NOUS_API_KEY infers DeepSeek id", nous.model === "deepseek/deepseek-v4-pro");
+assert("NOUS_API_KEY infers DeepSeek id", nous.model === "deepseek/deepseek-v4-flash");
 
 const generic = resolveConfig({
   GUEST_DEMO_API_KEY: "k",

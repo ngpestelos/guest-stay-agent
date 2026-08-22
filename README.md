@@ -12,7 +12,7 @@ Any OpenAI-compatible chat API. A local stand-in proposes if no key is set.
 # Generic (Nous example)
 export GUEST_DEMO_API_KEY=...
 export GUEST_DEMO_API_BASE=https://inference-api.nousresearch.com/v1
-export GUEST_DEMO_MODEL=deepseek/deepseek-v4-pro
+export GUEST_DEMO_MODEL=deepseek/deepseek-v4-flash
 
 # Or a known key name (base and model inferred)
 export NOUS_API_KEY=...

@@ -63,7 +63,7 @@ export const SYSTEM_PROMPT = [
 const PRESETS = {
   nous: {
     base: "https://inference-api.nousresearch.com/v1",
-    model: "deepseek/deepseek-v4-pro"
+    model: "deepseek/deepseek-v4-flash"
   },
   xai: {
     base: "https://api.x.ai/v1",
