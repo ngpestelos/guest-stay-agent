@@ -15,6 +15,8 @@
   var proposing = false;
   var walking = false;
   var idle = true;
+  var pending = null;
+  var runId = 0;
   var INTRO =
     "A normal question, a refund the agent cannot pay, a host who can, then a slot that disappears.";
   var OVERRIDE_CAPTION =
@@ -100,7 +102,7 @@
     box.replaceChildren();
     thread.forEach(function (msg) {
       var div = document.createElement("div");
-      div.className = "bubble " + msg.role;
+      div.className = "bubble " + msg.role + (msg.pending ? " pending" : "");
       var who = document.createElement("span");
       who.className = "who";
       text(
@@ -113,13 +115,43 @@
               ? "Host"
               : "System"
       );
-      var body = document.createElement("div");
-      text(body, msg.text);
       div.appendChild(who);
-      div.appendChild(body);
+      if (msg.pending) {
+        var dots = document.createElement("div");
+        dots.className = "dots";
+        dots.setAttribute("aria-label", "Working");
+        for (var i = 0; i < 3; i++) {
+          var s = document.createElement("span");
+          text(s, ".");
+          dots.appendChild(s);
+        }
+        div.appendChild(dots);
+      } else {
+        var body = document.createElement("div");
+        text(body, msg.text);
+        div.appendChild(body);
+      }
       box.appendChild(div);
     });
     box.scrollTop = box.scrollHeight;
+  }
+
+  function clearPending() {
+    pending = null;
+    thread = thread.filter(function (m) {
+      return !m.pending;
+    });
+  }
+
+  function setPending(kind) {
+    clearPending();
+    pending = kind;
+    thread.push({
+      role: kind === "host" ? "host" : "agent",
+      text: "...",
+      pending: true
+    });
+    render();
   }
 
   function render() {
@@ -156,38 +188,50 @@
         return o.id === proposal.option_id;
       });
       wanted = opt ? opt.summary : "Option " + proposal.option_id;
+    } else if (pending === "agent") {
+      wanted = "...";
     }
     text($("wanted-text"), wanted);
 
     var badge = $("happened-badge");
     var happened = "Press Play.";
+    var hears = $("guest-hears");
+    hears.classList.remove("pending-text");
     if (!verdict) {
       setCallClass(badge, "idle");
-      text(badge, "idle");
-      text($("guest-hears"), "Nothing yet.");
+      if (pending === "agent") {
+        text(badge, "…");
+        happened = "...";
+        text(hears, "...");
+        hears.classList.add("pending-text");
+      } else {
+        text(badge, "idle");
+        text(hears, idle ? "Nothing yet." : "...");
+        if (!idle) hears.classList.add("pending-text");
+      }
     } else if (verdict.call === "act" && verdict.ticket) {
       setCallClass(badge, "act");
       text(badge, "Allowed");
       happened = "Answered from the stay. No human needed.";
-      text($("guest-hears"), verdict.guest_reply || "Replied.");
+      text(hears, verdict.guest_reply || "Replied.");
     } else if (verdict.call === "override") {
       setCallClass(badge, "override");
       text(badge, "Host override");
       happened = "Host approved the refund. The agent still could not.";
-      text($("guest-hears"), verdict.guest_reply || "Host refunded.");
+      text(hears, verdict.guest_reply || "Host refunded.");
     } else if (verdict.call === "escalate") {
       setCallClass(badge, "escalate");
       text(badge, "Ask a human");
       happened = "Did not move money. A host owns this.";
       text(
-        $("guest-hears"),
+        hears,
         verdict.guest_reply || "Nothing promised. Host queue opened."
       );
     } else {
       setCallClass(badge, "stop");
       text(badge, "Stopped");
       happened = "Did not confirm. Did not send a door code.";
-      text($("guest-hears"), "Nothing sent — the slot was gone.");
+      text(hears, "Nothing sent — the slot was gone.");
     }
     text($("happened-text"), happened);
 
@@ -276,7 +320,11 @@
       btn.classList.toggle("on", btn.getAttribute("data-eval") === id);
     });
     if (!opts.keepIdle) idle = false;
-    if (!opts.silentGuest) pushGuestMessage();
+    if (!opts.silentGuest) {
+      pushGuestMessage();
+      setPending("agent");
+      return;
+    }
     render();
   }
 
@@ -327,6 +375,7 @@
   function proposeModel() {
     if (!current || proposing) return Promise.resolve();
     proposing = true;
+    if (pending !== "agent") setPending("agent");
     setStatus("busy", "model proposing…");
     var body = {
       fixture: current,
@@ -378,13 +427,24 @@
   }
 
   function proposeBest() {
+    if (pending !== "agent") setPending("agent");
     if (keyed) return proposeModel();
-    proposeGreedy();
-    return Promise.resolve();
+    var id = runId;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        if (id !== runId) {
+          resolve();
+          return;
+        }
+        proposeGreedy();
+        resolve();
+      }, 900);
+    });
   }
 
   function applyVeto() {
     if (!current || !proposal) return;
+    clearPending();
     verdict = GUEST_POLICY.veto(current, proposal);
     memory = GUEST_POLICY.applyMemory(
       { memory_persist: memory, stay: stay.stay },
@@ -411,10 +471,12 @@
       });
     }
     render();
+    if (walking && verdict.call === "escalate") setPending("host");
   }
 
   function applyHostOverride() {
     if (!current || !verdict) return;
+    clearPending();
     var next = GUEST_POLICY.hostOverride(current, verdict);
     verdict = next;
     memory = GUEST_POLICY.applyMemory(
@@ -447,6 +509,8 @@
     memory = JSON.parse(JSON.stringify(stay.memory_persist));
     walking = false;
     idle = true;
+    pending = null;
+    runId += 1;
     text($("btn-walk"), "Play");
     thread = [
       {

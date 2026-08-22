@@ -100,6 +100,7 @@ h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .card p { margin: 0.25rem 0 0; }
 
 .hears { color: var(--act); }
+.hears.pending-text { color: var(--muted); }
 
 .status {
   font-size: 0.75rem;
@@ -249,6 +250,35 @@ ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
   margin-bottom: 0.2rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.bubble.pending {
+  opacity: 0.92;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 0.12em;
+  min-height: 1.2em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.dots span {
+  animation: pending-dot 1.05s infinite ease-in-out;
+}
+
+.dots span:nth-child(2) { animation-delay: 0.18s; }
+.dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes pending-dot {
+  0%, 80%, 100% { opacity: 0.18; }
+  40% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dots span { animation: none; opacity: 1; }
 }
 
 .evals { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.5rem; }

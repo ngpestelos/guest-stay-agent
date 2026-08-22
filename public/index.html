@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guest stay agent</title>
-  <link rel="stylesheet" href="demo.css">
+  <link rel="stylesheet" href="demo.css?v=pending">
 </head>
 <body>
   <p id="boot">Loading…</p>
@@ -28,7 +28,7 @@
     <div class="story">
       <section class="chat-panel">
         <h2>What the guest sees</h2>
-        <div id="thread" class="thread"></div>
+        <div id="thread" class="thread" aria-live="polite"></div>
       </section>
       <section class="decision-panel">
         <h2>What happened</h2>
@@ -104,6 +104,6 @@
     </div>
   </div>
   <script src="policy.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=pending"></script>
 </body>
 </html>
