@@ -589,7 +589,6 @@
       clearTimeout(walkTimer);
       walkTimer = null;
     }
-    currentPlaylist = pickNextPlaylist() || currentPlaylist;
     resetAll();
     idle = false;
     walking = true;
@@ -680,7 +679,7 @@
       ).then(function (rows) {
         stay = rows[0];
         fixtures = rows.slice(1);
-        currentPlaylist = firstPlaylist();
+        currentPlaylist = pickNextPlaylist() || firstPlaylist();
         return rows;
       });
     });
