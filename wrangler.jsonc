@@ -1,5 +1,6 @@
 {
   "name": "guest-stay-agent",
+  "account_id": "c852c42de834e64b715c546678d613fd",
   "main": "src/worker.js",
   "compatibility_date": "2026-08-22",
   "workers_dev": true,

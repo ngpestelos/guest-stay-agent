@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Tests
+        run: |
+          node scripts/run-guest-tests.mjs
+          node scripts/run-guest-propose-tests.mjs
+
+      - name: Required files
+        run: |
+          set -euo pipefail
+          for f in \
+            public/index.html \
+            public/app.js \
+            public/policy.js \
+            public/demo.css \
+            public/fixtures/stay.json \
+            public/fixtures/scenarios.json \
+            src/worker.js \
+            wrangler.jsonc \
+            scripts/deploy.sh \
+            scripts/run-guest-tests.mjs \
+            scripts/run-guest-propose-tests.mjs \
+            scripts/guest-tests.js \
+            scripts/lib/guest-propose.mjs
+          do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+
+      - name: Wrangler dry-run
+        run: npx --yes wrangler@4 deploy --dry-run --outdir /tmp/gsa-ci-dry-run
+
+  deploy:
+    name: deploy
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Deploy Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN unset — tests passed; skip CD. Set the secret, then re-run."
+            exit 0
+          fi
+          npx --yes wrangler@4 deploy

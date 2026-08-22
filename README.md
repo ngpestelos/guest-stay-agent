@@ -51,6 +51,8 @@ node scripts/run-guest-tests.mjs
 node scripts/run-guest-propose-tests.mjs
 ```
 
+CI on push/PR (`ci` check). Deploy on `main` when `CLOUDFLARE_API_TOKEN` is set as a GitHub Actions secret. Dependabot weekly for Actions; non-major PRs auto-merge after `ci` is green.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
