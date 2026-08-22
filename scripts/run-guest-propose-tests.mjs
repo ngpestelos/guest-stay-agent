@@ -5,7 +5,8 @@ import {
   parseProposalJson,
   runTool,
   proposeWithModel,
-  resolveConfig
+  resolveConfig,
+  buildUserContent
 } from "./lib/guest-propose.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -80,6 +81,39 @@ assert("open_host_ticket is stub not money", ticket.money_moved === false);
 
 const stayHit = runTool("get_stay", {}, { stay: stay, fixture: e2, memory: stay.memory_persist });
 assert("get_stay omits discard list", stayHit.persist && !stayHit.discard);
+
+const checkout = JSON.parse(
+  fs.readFileSync(path.join(demo, "fixtures", "eval-act-checkout.json"), "utf8")
+);
+const prompt = buildUserContent({
+  fixture: checkout,
+  stay: stay,
+  memory: stay.memory_persist,
+  guest_message: checkout.guest_message.text,
+  story: {
+    id: "checkout-fee-rollaway",
+    title: "Checkout and a fee fight",
+    caption: "Alex asks checkout time and parking."
+  }
+});
+assert("model prompt names this story", prompt.indexOf("Checkout and a fee fight") >= 0);
+assert("model prompt includes this guest ask", prompt.indexOf("where do I park") >= 0);
+assert("model prompt does not default to Wi-Fi eval id", prompt.indexOf("guest-eval-act-checkout") >= 0);
+
+const calRoll = runTool(
+  "calendar_check",
+  {},
+  {
+    stay: stay,
+    fixture: JSON.parse(
+      fs.readFileSync(path.join(demo, "fixtures", "eval-stop-rollaway.json"), "utf8")
+    )
+  }
+);
+assert(
+  "withdrawn reason follows this fixture",
+  calRoll.withdrawn === true && String(calRoll.reason).indexOf("rollaway") >= 0
+);
 
 const fakeChat = async function (messages) {
   const last = messages[messages.length - 1];

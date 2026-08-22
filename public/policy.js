@@ -195,12 +195,13 @@
       };
     }
 
+    var modelReply = proposal && proposal.guest_reply && String(proposal.guest_reply).trim();
     return {
       call: "act",
       ticket: true,
       side_effect: true,
       option_id: opt.id,
-      guest_reply: opt.guest_reply || null,
+      guest_reply: modelReply || opt.guest_reply || null,
       workflow: opt.workflow || [],
       ignored_proposer_call: proposal && proposal.call,
       packet: packetFrom(

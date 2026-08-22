@@ -34,6 +34,26 @@
     assert("eval-1 side effect allowed", v1.ticket === true);
     assert("eval-1 has guest reply", !!(v1.guest_reply && v1.guest_reply.indexOf("15:00") >= 0));
 
+    var liveAct = P.veto(e1, {
+      option_id: "A",
+      guest_reply: "Check-in from 15:00. Parking is basement B2."
+    });
+    assert(
+      "act keeps live model wording",
+      liveAct.call === "act" && liveAct.guest_reply.indexOf("basement B2") >= 0
+    );
+    var liveRefund = P.veto(e2, {
+      option_id: "A",
+      call: "act",
+      guest_reply: "Full refund is on the way."
+    });
+    assert(
+      "money option ignores model refund wording",
+      liveRefund.call === "escalate" &&
+        liveRefund.ticket === false &&
+        String(liveRefund.guest_reply || "").indexOf("on the way") < 0
+    );
+
     var p2 = P.greedyPropose(e2);
     var v2 = P.veto(e2, p2);
     assert("eval-2 greedy wants refund A", p2.option_id === "A");

@@ -417,11 +417,17 @@
     proposing = true;
     if (pending !== "agent") setPending("agent");
     setStatus("busy", "model proposing…");
+    var beat = beatFor(current.id);
     var body = {
       fixture: current,
       stay: stay,
       memory: memory,
-      guest_message: current.guest_message && current.guest_message.text
+      guest_message: current.guest_message && current.guest_message.text,
+      story: {
+        id: currentPlaylist && currentPlaylist.id,
+        title: currentPlaylist && currentPlaylist.title,
+        caption: beat && beat.caption
+      }
     };
     return fetch("/api/propose", {
       method: "POST",
