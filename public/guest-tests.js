@@ -127,6 +127,24 @@
     var mem2 = P.applyMemory(stay, e2, hold);
     assert("memory records escalation", mem2.escalations.length >= 1);
 
+    fixtures.forEach(function (f) {
+      if (!f.expected || !f.expected.call) return;
+      var gp = P.greedyPropose(f);
+      var gv = P.veto(f, gp);
+      assert(
+        f.id + " greedy+veto is " + f.expected.call,
+        gv.call === f.expected.call
+      );
+      if (f.expected.call === "escalate" && f.host_override) {
+        var ov2 = P.hostOverride(f, gv);
+        assert(f.id + " host can override money", ov2.call === "override" && ov2.ticket === true);
+      }
+      if (f.expected.call === "stop") {
+        var stopNo = P.hostOverride(f, gv);
+        assert(f.id + " host cannot un-stop", stopNo.call !== "override");
+      }
+    });
+
     return { pass: pass, fail: fail, lines: lines };
   }
 

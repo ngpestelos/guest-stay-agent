@@ -212,6 +212,15 @@
     };
   }
 
+  function isMoneyEscalate(fixture) {
+    if (!fixture || !fixture.expected || fixture.expected.call !== "escalate") {
+      return false;
+    }
+    return (fixture.options || []).some(function (o) {
+      return o.moves_money || o.kind === "refund" || o.kind === "comp";
+    });
+  }
+
   /**
    * Human override of a blocked money gate.
    * Only after escalate. Cannot un-stop a withdrawn slot or invent a confirmation.
@@ -234,7 +243,7 @@
         )
       };
     }
-    if (fixture.eval !== 2) {
+    if (!isMoneyEscalate(fixture)) {
       return {
         call: prior.call,
         ticket: false,
@@ -251,6 +260,7 @@
         )
       };
     }
+    var ho = fixture.host_override || {};
     return {
       call: "override",
       ticket: true,
@@ -258,8 +268,9 @@
       actor: "host",
       option_id: "A",
       guest_reply:
+        ho.guest_reply ||
         "Alex — the host approved a full refund for the AC failure. You'll see it on the original payment. Sorry again for the night you lost.",
-      workflow: ["refund_full", "close_escalation:ESC-AC-01"],
+      workflow: ho.workflow || ["refund_full", "close_escalation:ESC-AC-01"],
       packet: packetFrom(
         fixture,
         "A",
@@ -272,33 +283,30 @@
   /** Apply verdict to stay memory (pure). */
   function applyMemory(stay, fixture, verdict) {
     var mem = JSON.parse(JSON.stringify(stay.memory_persist));
-    var stage = fixture.stage || stay.stay.stage;
-    if (verdict.call === "act" && verdict.option_id === "A" && fixture.eval === 1) {
-      mem.commitments = mem.commitments.concat(["Wi-Fi credentials shared pre-arrival"]);
-      mem.offers_made = mem.offers_made.concat(["wifi_and_checkin_info"]);
+    var spec = ((fixture.memory || {})[verdict.call]) || {};
+    if (spec.commitments && spec.commitments.length) {
+      mem.commitments = mem.commitments.concat(spec.commitments);
     }
-    if (verdict.call === "escalate" && fixture.eval === 2) {
-      mem.escalations = mem.escalations.concat([
-        {
-          id: "ESC-AC-01",
-          type: "refund_decision",
-          stage: stage,
-          summary: "Full refund demand after AC failure overnight"
-        }
-      ]);
-      mem.stay_version = 2;
+    if (spec.offers_made && spec.offers_made.length) {
+      mem.offers_made = mem.offers_made.concat(spec.offers_made);
     }
-    if (verdict.call === "override" && fixture.eval === 2) {
-      mem.offers_made = mem.offers_made.concat(["host_override_full_refund"]);
-      mem.commitments = mem.commitments.concat([
-        "Host approved full refund after AC failure"
-      ]);
+    if (spec.offers_refused && spec.offers_refused.length) {
+      mem.offers_refused = mem.offers_refused.concat(spec.offers_refused);
     }
-    if (verdict.call === "stop" && fixture.eval === 3) {
-      mem.offers_refused = mem.offers_refused.concat([
-        "early_checkin_13:00_slot_withdrawn"
-      ]);
+    if (spec.escalations && spec.escalations.length) {
+      var stage = fixture.stage || stay.stay.stage;
+      mem.escalations = mem.escalations.concat(
+        spec.escalations.map(function (row) {
+          var copy = {};
+          Object.keys(row).forEach(function (k) {
+            copy[k] = row[k];
+          });
+          if (!copy.stage) copy.stage = stage;
+          return copy;
+        })
+      );
     }
+    if (spec.stay_version) mem.stay_version = spec.stay_version;
     return mem;
   }
 

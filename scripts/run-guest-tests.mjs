@@ -21,11 +21,20 @@ load("public/guest-tests.js");
 const stay = JSON.parse(
   fs.readFileSync(path.join(demo, "fixtures", "stay.json"), "utf8")
 );
-const fixtures = [
-  "eval-1-act.json",
-  "eval-2-escalate.json",
-  "eval-3-stop.json"
-].map((name) =>
+const pack = JSON.parse(
+  fs.readFileSync(path.join(demo, "fixtures", "scenarios.json"), "utf8")
+);
+const fixtureNames = [];
+const seen = new Set();
+for (const p of pack.playlists || []) {
+  for (const b of p.beats || []) {
+    if (b.file && !seen.has(b.file)) {
+      seen.add(b.file);
+      fixtureNames.push(b.file);
+    }
+  }
+}
+const fixtures = fixtureNames.map((name) =>
   JSON.parse(fs.readFileSync(path.join(demo, "fixtures", name), "utf8"))
 );
 

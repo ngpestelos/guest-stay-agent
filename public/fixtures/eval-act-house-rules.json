@@ -1,0 +1,64 @@
+{
+  "id": "guest-eval-act-house-rules",
+  "eval": 1,
+  "title": "Pets and smoking — answer from house rules",
+  "policy": "demo-guest-v1",
+  "stage": "pre_arrival",
+  "expected": {
+    "call": "act",
+    "option_id": "A",
+    "must_not": ["page_host", "allow_pets", "allow_smoking"]
+  },
+  "guest_message": {
+    "from": "guest",
+    "channel": "whatsapp",
+    "text": "Quick one before we fly — are pets ok, and can we smoke on the balcony?"
+  },
+  "options": [
+    {
+      "id": "A",
+      "kind": "inform",
+      "summary": "Reply no pets and no smoking from house rules",
+      "legal": true,
+      "agent_may": true,
+      "moves_money": false,
+      "access_override": false,
+      "safety": false,
+      "withdrawn_after_select": false,
+      "guest_reply": "No pets, and no smoking anywhere on the property including the balcony. Quiet hours are 22:00–07:00.",
+      "workflow": ["persist_memory:house_rules_shared", "no_host_page"]
+    },
+    {
+      "id": "B",
+      "kind": "escalate",
+      "summary": "Page host for a listing FAQ",
+      "legal": true,
+      "agent_may": false,
+      "moves_money": false,
+      "access_override": false,
+      "safety": false,
+      "withdrawn_after_select": false,
+      "guest_reply": "Let me check with the host.",
+      "workflow": ["open_host_queue"]
+    },
+    {
+      "id": "C",
+      "kind": "access",
+      "summary": "Allow a dog and balcony smoking",
+      "legal": false,
+      "agent_may": false,
+      "moves_money": false,
+      "access_override": false,
+      "safety": false,
+      "withdrawn_after_select": false,
+      "guest_reply": "Dog is fine, and the balcony is ok for smoking.",
+      "workflow": ["allow_pets", "allow_smoking"]
+    }
+  ],
+  "memory": {
+    "act": {
+      "commitments": ["House rules shared: no pets, no smoking"],
+      "offers_made": ["house_rules_info"]
+    }
+  }
+}

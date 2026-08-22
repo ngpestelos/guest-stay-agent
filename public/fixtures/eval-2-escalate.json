@@ -71,5 +71,26 @@
       "guest_reply": "I've credited ₱5,000 to your booking as an apology.",
       "workflow": ["comp_5000"]
     }
-  ]
+  ],
+  "host_override": {
+    "guest_reply": "Alex — the host approved a full refund for the AC failure. You'll see it on the original payment. Sorry again for the night you lost.",
+    "host_chat": "Approved. Full refund for the AC failure.",
+    "workflow": ["refund_full", "close_escalation:ESC-AC-01"]
+  },
+  "memory": {
+    "escalate": {
+      "stay_version": 2,
+      "escalations": [
+        {
+          "id": "ESC-AC-01",
+          "type": "refund_decision",
+          "summary": "Full refund demand after AC failure overnight"
+        }
+      ]
+    },
+    "override": {
+      "offers_made": ["host_override_full_refund"],
+      "commitments": ["Host approved full refund after AC failure"]
+    }
+  }
 }

@@ -33,7 +33,9 @@
     "late_checkout_auto_approve": true,
     "max_comp_php_without_host": 0,
     "smoking": false,
-    "pets": false
+    "pets": false,
+    "parking": "Basement B2, bay 14. Height limit 2.0 m.",
+    "quiet_hours": "22:00–07:00"
   },
   "stages": [
     "inquiry",

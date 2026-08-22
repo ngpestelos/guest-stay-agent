@@ -24,7 +24,7 @@ node scripts/guest-demo-server.mjs
 
 A repo-root `.env` is loaded if present (not committed).
 
-Open http://127.0.0.1:8765/ and press **Play**.
+Open http://127.0.0.1:8765/ and press **Play**. Each Play cycles a different stay story (FAQ → money gate + host override → withdrawn slot).
 
 The server binds `127.0.0.1` only. Do not open `file://`. Keep the key in the environment, not in the page.
 

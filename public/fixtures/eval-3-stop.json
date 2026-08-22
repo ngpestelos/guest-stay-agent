@@ -51,5 +51,13 @@
       "guest_reply": "Standard check-in stays 15:00. I can ask the host about a luggage drop after your landing if that helps.",
       "workflow": ["persist_memory:early_checkin_denied_slot"]
     }
-  ]
+  ],
+  "ui": {
+    "stop_chat": "Stopped. The 13:00 slot was gone. No confirmation sent."
+  },
+  "memory": {
+    "stop": {
+      "offers_refused": ["early_checkin_13:00_slot_withdrawn"]
+    }
+  }
 }

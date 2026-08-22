@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Guest stay agent</title>
-  <link rel="stylesheet" href="demo.css?v=pending">
+  <link rel="stylesheet" href="demo.css?v=scenarios">
 </head>
 <body>
   <p id="boot">Loading…</p>
@@ -22,7 +22,7 @@
       </div>
     </header>
 
-    <p id="caption" class="caption">A normal question, a refund the agent cannot pay, a host who can, then a slot that disappears.</p>
+    <p id="caption" class="caption">Press Play. Each run is a different stay story.</p>
     <p id="stay-line" class="stay-line"></p>
 
     <div class="story">
@@ -71,11 +71,7 @@
         </section>
         <section>
           <h2>Propose → policy</h2>
-          <nav class="evals">
-            <button type="button" data-eval="guest-eval-1-act">1 Answer</button>
-            <button type="button" data-eval="guest-eval-2-escalate">2 Refund</button>
-            <button type="button" data-eval="guest-eval-3-stop">3 Slot gone</button>
-          </nav>
+          <nav class="evals" id="evals-nav"></nav>
           <p>Option <strong id="proposal-id">—</strong> <span id="proposal-src" class="muted"></span></p>
           <pre id="proposal-text"></pre>
           <p class="row">
@@ -104,6 +100,6 @@
     </div>
   </div>
   <script src="policy.js"></script>
-  <script src="app.js?v=pending"></script>
+  <script src="app.js?v=scenarios"></script>
 </body>
 </html>

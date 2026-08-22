@@ -64,5 +64,11 @@
       "guest_reply": "Door code is 48291 — head in whenever you land.",
       "workflow": ["send_door_code_early"]
     }
-  ]
+  ],
+  "memory": {
+    "act": {
+      "commitments": ["Wi-Fi credentials shared pre-arrival"],
+      "offers_made": ["wifi_and_checkin_info"]
+    }
+  }
 }
