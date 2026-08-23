@@ -2,6 +2,8 @@
 
 Demo of a dual-layer guest agent. Not a product.
 
+This repository is the code source of truth. Edit, test, and deploy here. Do not treat a vault copy as live code.
+
 The model proposes. A separate policy decides. The agent can answer from the stay. It cannot refund money or fake a confirmation. A host can override the money gate. A withdrawn calendar slot cannot be overridden into a confirmation.
 
 ## Run
