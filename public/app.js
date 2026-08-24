@@ -24,6 +24,12 @@
   var OVERRIDE_CAPTION =
     "The host overrides. Money moves. The agent still could not have done this.";
   var PLAYLIST_KEY = "guestStayPlaylist";
+  // Intentionally public — same value as wrangler.jsonc's UI_ACT_KEY var.
+  // Time-boxed (UI_ACT_KEY_EXPIRES_AT server-side); past expiry every call
+  // below fails closed and this file falls back to its original
+  // client-side-only propose+veto behavior automatically.
+  var UI_ACT_KEY = "0d996347119e3ff4682952355a229de3";
+  var actResult = null;
 
   function beatFor(id) {
     if (!currentPlaylist || !currentPlaylist.beats) return null;
@@ -478,6 +484,88 @@
     });
   }
 
+  // Server-gated path: /api/act runs propose + veto() + persist in one call,
+  // using a fixture the server loads itself (never trusting this page's
+  // copy). Mirrors proposeModel()'s render effects for the "proposing" half
+  // so the walkthrough's pacing looks identical either way. Resolves false
+  // on any failure (network, expired UI key, 5xx) so the caller can fall
+  // back to the original proposeBest()/applyVeto() flow untouched.
+  function proposeServerAct() {
+    actResult = null;
+    if (!current) return Promise.resolve(false);
+    var beat = beatFor(current.id);
+    if (!beat || !beat.file) return Promise.resolve(false);
+    if (pending !== "agent") setPending("agent");
+    setStatus("busy", "model proposing…");
+    var body = {
+      fixture_file: beat.file,
+      guest_message: current.guest_message && current.guest_message.text,
+      story: {
+        id: currentPlaylist && currentPlaylist.id,
+        title: currentPlaylist && currentPlaylist.title,
+        caption: beat.caption
+      }
+    };
+    return fetch("/api/act", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Act-Key": UI_ACT_KEY },
+      body: JSON.stringify(body)
+    })
+      .then(function (r) {
+        return r.json().then(function (j) {
+          return { okHttp: r.ok, json: j };
+        });
+      })
+      .then(function (pack) {
+        var j = pack.json || {};
+        if (pack.okHttp && j.ok && j.verdict && j.proposal) {
+          actResult = j;
+          proposal = j.proposal;
+          proposalSrc = "model · " + (j.model || modelName) + " · server-gated";
+          trace = j.trace || [];
+          verdict = null;
+          setStatus("live", "live · " + (j.model || modelName) + " · persisted");
+          render();
+          return true;
+        }
+        return false;
+      })
+      .catch(function () {
+        return false;
+      });
+  }
+
+  // Consumes the result proposeServerAct() already fetched — no second
+  // request, no local veto()/applyMemory() call, since the server already
+  // ran both. Returns false (does nothing) if there's no server result to
+  // apply, so the caller falls back to the original applyVeto().
+  function applyServerVerdict() {
+    if (!actResult) return false;
+    clearPending();
+    verdict = actResult.verdict;
+    memory = actResult.memory || memory;
+    if (verdict.guest_reply) {
+      thread.push({ role: "agent", text: verdict.guest_reply, eval: current.id });
+    } else if (verdict.call === "stop") {
+      thread.push({
+        role: "system",
+        text:
+          (current.ui && current.ui.stop_chat) ||
+          "Stopped. The slot was gone. No confirmation sent.",
+        eval: current.id
+      });
+    } else if (verdict.call === "escalate" && !verdict.guest_reply) {
+      thread.push({
+        role: "system",
+        text: "Held. Host queue owns this. Nothing promised to the guest.",
+        eval: current.id
+      });
+    }
+    render();
+    actResult = null;
+    return true;
+  }
+
   function applyVeto() {
     if (!current || !proposal) return;
     clearPending();
@@ -544,11 +632,22 @@
     render();
   }
 
+  function clearServerMemory() {
+    if (!stay) return;
+    fetch(
+      "/api/act/memory?booking_id=" + encodeURIComponent(stay.stay.booking_id),
+      { method: "DELETE", headers: { "X-Act-Key": UI_ACT_KEY } }
+    ).catch(function () {
+      /* best-effort — a new story still resets the client's own view */
+    });
+  }
+
   function resetAll() {
     if (walkTimer) {
       clearTimeout(walkTimer);
       walkTimer = null;
     }
+    clearServerMemory();
     memory = JSON.parse(JSON.stringify(stay.memory_persist));
     walking = false;
     idle = true;
@@ -594,11 +693,13 @@
         });
         pauseAfter.push(4000);
         steps.push(function () {
-          return proposeBest();
+          return proposeServerAct().then(function (ok) {
+            if (!ok) return proposeBest();
+          });
         });
         pauseAfter.push(3500);
         steps.push(function () {
-          applyVeto();
+          if (!applyServerVerdict()) applyVeto();
           return Promise.resolve();
         });
         pauseAfter.push(7000);

@@ -9,6 +9,20 @@
     "binding": "ASSETS",
     "run_worker_first": true
   },
+  "kv_namespaces": [
+    {
+      "binding": "STAY_MEMORY",
+      "id": "231c98e0462d40d9bfced9c11042adf6"
+    }
+  ],
+  // UI_ACT_KEY is intentionally public — it ships inside public/app.js, so a
+  // wrangler secret would be misleading here. It exists only to give the
+  // Play UI a bounded write window; ACT_DEMO_KEY (a real secret) is the
+  // durable, private credential for direct/terminal use and never expires.
+  "vars": {
+    "UI_ACT_KEY": "0d996347119e3ff4682952355a229de3",
+    "UI_ACT_KEY_EXPIRES_AT": "2026-08-31T23:59:59Z"
+  },
   "routes": [
     {
       "pattern": "guest-agent-demo.ngpcloud.org",

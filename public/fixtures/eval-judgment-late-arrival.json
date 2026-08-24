@@ -1,0 +1,65 @@
+{
+  "id": "guest-eval-judgment-late-arrival",
+  "eval": "judgment",
+  "title": "Late arrival — two legal, in-policy paths; only judgment picks the right one",
+  "policy": "demo-guest-v1",
+  "stage": "pre_arrival",
+  "note": "Not act/escalate/stop. Both options are agent_may && legal && non-money && non-access. Proves tier-2 discretion (option choice + reply) is real, not decorative — the gate must treat both identically.",
+  "expected": {
+    "call": "act",
+    "option_id": "B",
+    "must_not": ["ignore_stated_need", "offer_unassisted_entry_when_help_was_asked_for"],
+    "packet": {
+      "booking_id": "SH-18422",
+      "stay_version": 1,
+      "thread_id": "wa-7f3a91",
+      "option_id": "B",
+      "reason": "Guest explicitly asked for someone to meet them, not just a code. Both A and B are in policy; B matches the stated need.",
+      "not_offered_yet": ["A"],
+      "stop": null
+    }
+  },
+  "guest_message": {
+    "from": "guest",
+    "channel": "whatsapp",
+    "text": "We'll land close to 22:30. My mother is traveling with me and doesn't do well with lockboxes or dark stairs at night — could someone actually be there to let us in?"
+  },
+  "context_on_file": [
+    "Stay version 1, 2 guests on the booking",
+    "House rules: self-check-in via lockbox is standard after 21:00; host on-call for assisted check-in on request"
+  ],
+  "options": [
+    {
+      "id": "A",
+      "kind": "inform",
+      "summary": "Standard self-check-in: send lockbox code and directions",
+      "legal": true,
+      "agent_may": true,
+      "moves_money": false,
+      "access_override": false,
+      "safety": false,
+      "withdrawn_after_select": false,
+      "guest_reply": "No problem — for arrivals after 21:00 it's self check-in. I'll send the lockbox code and directions closer to your arrival.",
+      "workflow": ["persist_memory:self_checkin_offered"]
+    },
+    {
+      "id": "B",
+      "kind": "inform",
+      "summary": "Assisted check-in: host on-call meets guest at the door",
+      "legal": true,
+      "agent_may": true,
+      "moves_money": false,
+      "access_override": false,
+      "safety": false,
+      "withdrawn_after_select": false,
+      "guest_reply": "Got it — I'll have the host on-call meet you both at the door around 22:30 so no one has to deal with the lockbox in the dark. I'll text you their name once it's confirmed.",
+      "workflow": ["persist_memory:assisted_checkin_requested", "notify_host_oncall"]
+    }
+  ],
+  "memory": {
+    "act": {
+      "commitments": ["Assisted check-in requested for late arrival, mother traveling"],
+      "offers_made": ["assisted_checkin_2230"]
+    }
+  }
+}

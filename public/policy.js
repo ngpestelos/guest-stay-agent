@@ -320,3 +320,7 @@
     applyMemory: applyMemory
   };
 })(typeof globalThis !== "undefined" ? globalThis : this);
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { GUEST_POLICY: globalThis.GUEST_POLICY };
+}
