@@ -35,6 +35,7 @@ jobs:
           set -euo pipefail
           for f in \
             public/index.html \
+            public/system-design.html \
             public/app.js \
             public/policy.js \
             public/demo.css \
